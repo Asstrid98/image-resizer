@@ -1,2 +1,2 @@
 # image-resizer
-Proyecto 2 en 1.
+#Proyecto nº2 (2 partes)
