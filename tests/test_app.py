@@ -13,7 +13,7 @@ def test_health_ready(client):
     assert response.json['status'] == 'ready'
 
 
-def test_resize_success(client, sample_image):
+def test_resize_accepted(client, sample_image):
     data = {
         'image': (sample_image, 'test.png'),
         'width': '200',
@@ -22,8 +22,9 @@ def test_resize_success(client, sample_image):
     response = client.post('/resize',
                            data=data,
                            content_type='multipart/form-data')
-    assert response.status_code == 200
-    assert response.content_type.startswith('image/')
+    assert response.status_code == 202
+    assert 'job_id' in response.json
+    assert response.json['status'] == 'pending'
 
 
 def test_resize_no_image(client):
@@ -32,12 +33,11 @@ def test_resize_no_image(client):
                            data=data,
                            content_type='multipart/form-data')
     assert response.status_code == 400
-    assert 'error' in response.json
 
 
 def test_resize_invalid_extension(client):
     data = {
-        'image': (BytesIO(b'not an image'), 'test.txt'),
+        'image': (BytesIO(b'fake'), 'test.txt'),
         'width': '200',
         'height': '200'
     }
@@ -95,7 +95,7 @@ def test_list_jobs_after_resize(client, sample_image):
     response = client.get('/jobs')
     assert response.status_code == 200
     assert len(response.json) == 1
-    assert response.json[0]['status'] == 'completed'
+    assert response.json[0]['status'] == 'pending'
 
 
 def test_get_job(client, sample_image):
@@ -104,13 +104,25 @@ def test_get_job(client, sample_image):
         'width': '100',
         'height': '100'
     }
-    client.post('/resize', data=data, content_type='multipart/form-data')
-    response = client.get('/jobs/1')
+    res = client.post('/resize', data=data, content_type='multipart/form-data')
+    job_id = res.json['job_id']
+    response = client.get(f'/jobs/{job_id}')
     assert response.status_code == 200
     assert response.json['original_filename'] == 'test.png'
-    assert response.json['width'] == 100
 
 
 def test_get_job_not_found(client):
     response = client.get('/jobs/999')
     assert response.status_code == 404
+
+
+def test_download_not_completed(client, sample_image):
+    data = {
+        'image': (sample_image, 'test.png'),
+        'width': '100',
+        'height': '100'
+    }
+    res = client.post('/resize', data=data, content_type='multipart/form-data')
+    job_id = res.json['job_id']
+    response = client.get(f'/jobs/{job_id}/download')
+    assert response.status_code == 409

@@ -1,6 +1,7 @@
 import pytest
 import io
 from PIL import Image
+from unittest.mock import patch
 from app.app import create_app
 from app.models import db
 
@@ -35,3 +36,10 @@ def sample_image():
     img.save(buffer, format='PNG')
     buffer.seek(0)
     return buffer
+
+
+@pytest.fixture(autouse=True)
+def mock_celery():
+    with patch('app.tasks.resize_image_task.delay') as mock_delay:
+        mock_delay.return_value = None
+        yield mock_delay

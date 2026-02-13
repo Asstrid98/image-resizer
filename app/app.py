@@ -3,7 +3,14 @@ from app.models import db, ImageJob
 from app.config import Config
 from PIL import Image
 import io
+import os
+import base64
+import glob
 from datetime import datetime
+
+RESULTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'results')
+os.makedirs(RESULTS_DIR, exist_ok=True)
+
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -39,78 +46,57 @@ def create_app(config_class=Config):
         if not allowed_file(file.filename):
             return jsonify({'error': 'File type not allowed. Use: png, jpg, jpeg, gif, webp'}), 400
 
-        # --- LÓGICA DE PRESETS Y ASPECT RATIO (RETO 1.1 Y 1.2) ---
-        preset_name = request.form.get('preset')
-        keep_ratio = request.form.get('keep_aspect_ratio', 'false').lower() == 'true'
-
-        if preset_name:
-            dimensions = app.config['SIZE_PRESETS'].get(preset_name)
-            if not dimensions:
-                return jsonify({'error': f'Invalid preset. Use: {list(app.config["SIZE_PRESETS"].keys())}'}), 400
-            width, height = dimensions
-        else:
-            width = request.form.get('width', type=int)
-            height = request.form.get('height', type=int)
-            
-            if not width or not height or width <= 0 or height <= 0:
-                return jsonify({'error': 'Valid width and height (or a preset) are required'}), 400
+        width = request.form.get('width', type=int)
+        height = request.form.get('height', type=int)
+        if not width or not height or width <= 0 or height <= 0:
+            return jsonify({'error': 'Valid width and height are required'}), 400
 
         if width > 5000 or height > 5000:
             return jsonify({'error': 'Maximum dimension is 5000px'}), 400
 
-        try:
-            image_data = file.read()
-            original_size = len(image_data)
+        image_data = file.read()
+        original_size = len(image_data)
 
-            img = Image.open(io.BytesIO(image_data))
-            img = img.convert('RGB') # Evita errores con PNGs transparentes al guardar en JPG
+        job = ImageJob(
+            original_filename=file.filename,
+            status='pending',
+            width=width,
+            height=height,
+            original_size=original_size
+        )
+        db.session.add(job)
+        db.session.commit()
 
-            # Aplicar redimensionado según el Reto 1.2
-            if keep_ratio:
-                img.thumbnail((width, height), Image.LANCZOS)
-            else:
-                img = img.resize((width, height), Image.LANCZOS)
+        image_data_b64 = base64.b64encode(image_data).decode('utf-8')
 
-            # Guardar resultado en buffer (Forzamos JPEG para máxima compatibilidad)
-            buffer = io.BytesIO()
-            img.save(buffer, format='JPEG', quality=85)
-            resized_size = buffer.tell()
-            buffer.seek(0)
+        from app.tasks import resize_image_task
+        resize_image_task.delay(job.id, image_data_b64, width, height, file.filename)
 
-            # Guardar registro en la Base de Datos
-            job = ImageJob(
-                original_filename=file.filename,
-                status='completed',
-                width=img.width,   # Usamos el ancho final real
-                height=img.height, # Usamos el alto final real
-                original_size=original_size,
-                resized_size=resized_size,
-                completed_at=datetime.utcnow()
-            )
-            db.session.add(job)
-            db.session.commit()
+        return jsonify({
+            'job_id': job.id,
+            'status': 'pending',
+            'message': 'Image queued for processing'
+        }), 202
 
-            return send_file(
-                buffer,
-                mimetype='image/jpeg',
-                as_attachment=True,
-                download_name=f'resized_{file.filename}'
-            )
+    @app.route('/jobs/<int:job_id>/download', methods=['GET'])
+    def download_result(job_id):
+        job = ImageJob.query.get(job_id)
+        if not job:
+            return jsonify({'error': 'Job not found'}), 404
 
-        except Exception as e:
-            db.session.rollback() # Limpia la sesión de DB si algo falla
-            job = ImageJob(
-                original_filename=file.filename,
-                status='failed',
-                width=0,
-                height=0,
-                original_size=len(image_data) if 'image_data' in locals() else 0,
-                error_message=str(e),
-                completed_at=datetime.utcnow()
-            )
-            db.session.add(job)
-            db.session.commit()
-            return jsonify({'error': f'Failed to resize: {str(e)}'}), 500
+        if job.status != 'completed':
+            return jsonify({'error': 'Job not completed yet', 'status': job.status}), 409
+
+        pattern = os.path.join(RESULTS_DIR, f'resized_{job_id}.*')
+        files = glob.glob(pattern)
+        if not files:
+            return jsonify({'error': 'Result file not found'}), 404
+
+        return send_file(
+            files[0],
+            as_attachment=True,
+            download_name=f'resized_{job.original_filename}'
+        )
 
     @app.route('/jobs', methods=['GET'])
     def list_jobs():
@@ -125,6 +111,7 @@ def create_app(config_class=Config):
         return jsonify(job.to_dict()), 200
 
     return app
+
 
 app = create_app()
 
