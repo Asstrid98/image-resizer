@@ -68,8 +68,8 @@ config:
 
 probes:
   liveness:
-    initialDelaySeconds: 30 # Aumentado para dar tiempo a arrancar
-    periodSeconds: 10
+    initialDelaySeconds: 45 # Aumentado para dar tiempo a arrancar
+    periodSeconds: 15
   readiness:
-    initialDelaySeconds: 15
-    periodSeconds: 5
+    initialDelaySeconds: 30
+    periodSeconds: 10
