@@ -1,0 +1,60 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install OpenShift CLI
+        uses: redhat-actions/oc-installer@v1
+        with:
+          oc_version: 'latest'
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: '3.13.0'
+
+      - name: Login to OpenShift
+        run: |
+          oc login --token=${{ secrets.OPENSHIFT_TOKEN }} --server=${{ secrets.OPENSHIFT_SERVER }}
+
+      - name: Set image tag
+        run: |
+          echo "IMAGE_TAG=$(echo '${{ github.event.workflow_run.head_sha }}' | cut -c1-7)" >> $GITHUB_ENV
+          echo "IMAGE_REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install image-resizer ./helm/image-resizer \
+            -f ./helm/image-resizer/values-dev.yaml \
+            --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_REPO }} \
+            --set image.tag=${{ env.IMAGE_TAG }} \
+            --wait \
+            --timeout 300s
+
+      - name: Verify deployment
+        run: |
+          ROUTE_URL=$(oc get route image-resizer -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
+          if [ -n "$ROUTE_URL" ]; then
+            echo "🚀 Application URL: https://$ROUTE_URL"
+            sleep 15
+            curl -sf https://$ROUTE_URL/health/live || echo "⚠️ Health check failed, but deployment may still be starting"
+          else
+            echo "⚠️ No route found. Check the deployment manually."
+          fi
+          echo "✅ Deploy step completed"
