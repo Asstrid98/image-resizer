@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-resizer-config
+  labels:
+    app: image-resizer
+data:
+  BASE_URL: "https://image-resizer-TUNAMESPACE.apps.sandbox-xxx.openshiftapps.com"
+  STORAGE_ENDPOINT: "http://minio:9000"
+  STORAGE_BUCKET: "image-resizer"
+  REDIS_URL: "redis://redis:6379/0"

@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-resizer-api
+  labels:
+    app: image-resizer
+    component: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-resizer
+      component: api
+  template:
+    metadata:
+      labels:
+        app: image-resizer
+        component: api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/TU-USUARIO/image-resizer:latest
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: image-resizer-config
+            - secretRef:
+                name: image-resizer-secret
+          resources:
+            requests: { memory: "64Mi", cpu: "50m" }
+            limits: { memory: "256Mi", cpu: "500m" }
+          livenessProbe:
+            httpGet: { path: /health/live, port: 5000 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 5000 }
+            initialDelaySeconds: 10
+            periodSeconds: 5

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-resizer-worker
+  labels:
+    app: image-resizer
+    component: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-resizer
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: image-resizer
+        component: worker
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/TU-USUARIO/image-resizer:latest
+          command: ["celery"]
+          args: ["-A", "app.celery_app:celery_app", "worker", "--loglevel=info", "--concurrency=2"]
+          envFrom:
+            - configMapRef:
+                name: image-resizer-config
+            - secretRef:
+                name: image-resizer-secret
+          resources:
+            requests: { memory: "128Mi", cpu: "100m" }
+            limits: { memory: "512Mi", cpu: "500m" }
