@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: ghcr.io/TU-USUARIO/image-resizer:latest
+          image: ghcr.io/asstrid98/image-resizer:latest
           ports:
             - containerPort: 5000
           envFrom:
