@@ -2,14 +2,21 @@ api:
   replicaCount: 1
   resources:
     requests:
-      memory: "64Mi"
-      cpu: "50m"
+      memory: "256Mi"
+      cpu: "100m"
     limits:
-      memory: "128Mi"
-      cpu: "250m"
+      memory: "512Mi"
+      cpu: "500m"
 
 worker:
   replicaCount: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
 
 minio:
   storage: 512Mi

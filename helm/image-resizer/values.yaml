@@ -7,10 +7,10 @@ api:
   replicaCount: 1
   resources:
     requests:
-      memory: "64Mi"
-      cpu: "50m"
-    limits:
       memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
       cpu: "500m"
 
 worker:
@@ -18,7 +18,7 @@ worker:
   concurrency: 2
   resources:
     requests:
-      memory: "128Mi"
+      memory: "256Mi"
       cpu: "100m"
     limits:
       memory: "512Mi"
@@ -52,7 +52,7 @@ postgresql:
   storage: 1Gi
   user: image-resizer
   password: password123
-  database: image-resizer
+  database: image-resizer  # Mantenemos el guion que arreglamos
 
 service:
   type: ClusterIP
@@ -68,8 +68,8 @@ config:
 
 probes:
   liveness:
-    initialDelaySeconds: 15
+    initialDelaySeconds: 30 # Aumentado para dar tiempo a arrancar
     periodSeconds: 10
   readiness:
-    initialDelaySeconds: 10
+    initialDelaySeconds: 15
     periodSeconds: 5
