@@ -1,5 +1,5 @@
 image:
-  repository: ghcr.io/TU-USUARIO/image-resizer
+  repository: ghcr.io/asstrid98/image-resizer
   tag: "latest"
   pullPolicy: Always
 
