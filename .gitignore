@@ -31,3 +31,6 @@ Thumbs.db
 # Uploads temporales
 uploads/
 results/
+# Secrets sin encriptar (NUNCA commitear)
+k8s/secret.yaml
+k8s/postgresql-secret.yaml

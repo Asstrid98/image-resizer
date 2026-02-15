@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "image-resizer.fullname" . }}-config
+  labels:
+    {{- include "image-resizer.labels" . | nindent 4 }}
+data:
+  {{- if .Values.config.baseUrl }}
+  BASE_URL: {{ .Values.config.baseUrl | quote }}
+  {{- else if .Values.route.enabled }}
+  BASE_URL: "https://{{ include "image-resizer.fullname" . }}-{{ .Release.Namespace }}.apps.sandbox.openshiftapps.com"
+  {{- else }}
+  BASE_URL: "http://localhost:5000"
+  {{- end }}
+  STORAGE_ENDPOINT: "http://minio:9000"
+  STORAGE_BUCKET: {{ .Values.config.storageBucket | quote }}
+  REDIS_URL: "redis://redis:6379/0"

@@ -1,0 +1,18 @@
+api:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "250m"
+
+worker:
+  replicaCount: 1
+
+minio:
+  storage: 512Mi
+
+postgresql:
+  storage: 512Mi
