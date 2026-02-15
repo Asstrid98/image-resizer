@@ -5,9 +5,9 @@ metadata:
   name: postgresql-secret
 type: Opaque
 stringData:
-  POSTGRESQL_USER: imageresizer
+  POSTGRESQL_USER: image-resizer
   POSTGRESQL_PASSWORD: password123
-  POSTGRESQL_DATABASE: imageresizer
+  POSTGRESQL_DATABASE: image-resizer
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -51,12 +51,12 @@ spec:
             limits: { memory: "256Mi", cpu: "500m" }
           livenessProbe:
             exec:
-              command: ["pg_isready", "-U", "imageresizer"]
+              command: ["pg_isready", "-U", "image-resizer"]
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
             exec:
-              command: ["pg_isready", "-U", "imageresizer"]
+              command: ["pg_isready", "-U", "image-resizer"]
             initialDelaySeconds: 5
             periodSeconds: 5
       volumes:

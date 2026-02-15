@@ -50,9 +50,9 @@ minio:
 postgresql:
   enabled: true
   storage: 1Gi
-  user: imageresizer
+  user: image-resizer
   password: password123
-  database: imageresizer
+  database: image-resizer
 
 service:
   type: ClusterIP
