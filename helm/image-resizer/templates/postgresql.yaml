@@ -8,14 +8,15 @@ metadata:
     {{- include "image-resizer.labels" . | nindent 4 }}
 type: Opaque
 stringData:
-  # Official postgres image (used in kind values)
+  {{- if contains "postgres:" (.Values.postgresql.image | default "") }}
   POSTGRES_USER: {{ .Values.postgresql.user }}
   POSTGRES_PASSWORD: {{ .Values.postgresql.password }}
   POSTGRES_DB: {{ .Values.postgresql.database }}
-  # OpenShift postgresql image compatibility
+  {{- else }}
   POSTGRESQL_USER: {{ .Values.postgresql.user }}
   POSTGRESQL_PASSWORD: {{ .Values.postgresql.password }}
   POSTGRESQL_DATABASE: {{ .Values.postgresql.database }}
+  {{- end }}
 
 ---
 apiVersion: v1
@@ -53,8 +54,7 @@ spec:
     spec:
       containers:
         - name: postgresql
-          image: {{ .Values.postgresql.image | default "image-registry.openshift-image-registry.svc:5000/openshift/postgresql:15-el9" }}
-          ports:
+          image: {{ .Values.postgresql.image | default "image-registry.openshift-image-registry.svc:5000/openshift/postgresql:15-el9" }}          ports:
             - containerPort: 5432
           envFrom:
             - secretRef:

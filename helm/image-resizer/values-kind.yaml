@@ -1,9 +1,10 @@
-# Values for local kind cluster (Argo CD lab)
+# helm/image-resizer/values-kind.yaml
+# Valores para el cluster local de kind (ArgoCD lab)
 
 image:
   repository: ghcr.io/asstrid98/image-resizer
   tag: "latest"
-  pullPolicy: IfNotPresent
+  pullPolicy: IfNotPresent  # Usa la imagen cargada con kind load
 
 api:
   replicaCount: 1
@@ -62,6 +63,7 @@ service:
   type: ClusterIP
   port: 5000
 
+# Sin Route (no estamos en OpenShift) ni Ingress (no hace falta en local)
 route:
   enabled: false
 
