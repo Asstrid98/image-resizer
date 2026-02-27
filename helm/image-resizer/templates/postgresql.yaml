@@ -54,7 +54,8 @@ spec:
     spec:
       containers:
         - name: postgresql
-          image: {{ .Values.postgresql.image | default "image-registry.openshift-image-registry.svc:5000/openshift/postgresql:15-el9" }}          ports:
+          image: {{ .Values.postgresql.image | default "image-registry.openshift-image-registry.svc:5000/openshift/postgresql:15-el9" }}
+          ports:
             - containerPort: 5432
           envFrom:
             - secretRef:
