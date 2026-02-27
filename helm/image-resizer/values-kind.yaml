@@ -3,7 +3,7 @@
 
 image:
   repository: ghcr.io/asstrid98/image-resizer
-  tag: "34b3a47"
+  tag: "28a4486"
   pullPolicy: IfNotPresent # Usa la imagen cargada con kind load
 api:
   replicaCount: 1
