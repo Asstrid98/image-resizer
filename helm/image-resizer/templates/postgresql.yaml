@@ -8,6 +8,11 @@ metadata:
     {{- include "image-resizer.labels" . | nindent 4 }}
 type: Opaque
 stringData:
+  # Official postgres image (used in kind values)
+  POSTGRES_USER: {{ .Values.postgresql.user }}
+  POSTGRES_PASSWORD: {{ .Values.postgresql.password }}
+  POSTGRES_DB: {{ .Values.postgresql.database }}
+  # OpenShift postgresql image compatibility
   POSTGRESQL_USER: {{ .Values.postgresql.user }}
   POSTGRESQL_PASSWORD: {{ .Values.postgresql.password }}
   POSTGRESQL_DATABASE: {{ .Values.postgresql.database }}
