@@ -1,0 +1,81 @@
+# Values for local kind cluster (Argo CD lab)
+
+image:
+  repository: ghcr.io/asstrid98/image-resizer
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+api:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+worker:
+  replicaCount: 1
+  concurrency: 2
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+redis:
+  enabled: true
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "250m"
+
+minio:
+  enabled: true
+  storage: 512Mi
+  rootUser: minioadmin
+  rootPassword: minioadmin
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+postgresql:
+  enabled: true
+  image: postgres:15
+  storage: 512Mi
+  user: image-resizer
+  password: password123
+  database: image-resizer
+  dataDir: /var/lib/postgresql/data
+
+service:
+  type: ClusterIP
+  port: 5000
+
+route:
+  enabled: false
+
+ingress:
+  enabled: false
+
+config:
+  baseUrl: "http://localhost:5000"
+  storageBucket: "image-resizer"
+
+probes:
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 15
+  readiness:
+    initialDelaySeconds: 20
+    periodSeconds: 10
