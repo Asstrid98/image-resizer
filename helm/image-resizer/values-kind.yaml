@@ -3,9 +3,8 @@
 
 image:
   repository: ghcr.io/asstrid98/image-resizer
-  tag: "latest"
-  pullPolicy: IfNotPresent  # Usa la imagen cargada con kind load
-
+  tag: "34b3a47"
+  pullPolicy: IfNotPresent # Usa la imagen cargada con kind load
 api:
   replicaCount: 1
   resources:
@@ -15,7 +14,6 @@ api:
     limits:
       memory: "256Mi"
       cpu: "250m"
-
 worker:
   replicaCount: 1
   concurrency: 2
@@ -26,7 +24,6 @@ worker:
     limits:
       memory: "256Mi"
       cpu: "250m"
-
 redis:
   enabled: true
   resources:
@@ -36,7 +33,6 @@ redis:
     limits:
       memory: "128Mi"
       cpu: "250m"
-
 minio:
   enabled: true
   storage: 512Mi
@@ -49,7 +45,6 @@ minio:
     limits:
       memory: "256Mi"
       cpu: "250m"
-
 postgresql:
   enabled: true
   image: postgres:15
@@ -58,22 +53,17 @@ postgresql:
   password: password123
   database: image-resizer
   dataDir: /var/lib/postgresql/data
-
 service:
   type: ClusterIP
   port: 5000
-
 # Sin Route (no estamos en OpenShift) ni Ingress (no hace falta en local)
 route:
   enabled: false
-
 ingress:
   enabled: false
-
 config:
   baseUrl: "http://localhost:5000"
   storageBucket: "image-resizer"
-
 probes:
   liveness:
     initialDelaySeconds: 30
